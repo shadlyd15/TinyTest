@@ -5,12 +5,28 @@
 	extern "C" {
 #endif
 
+#if defined(ARDUINO)
+    #include <Stream.h>
+    static Stream * _debug_stream;
+    
+    static int serial_putc(char c, FILE *){
+      _debug_stream->write(c);
+      return c;
+    }
+#endif
+
 #define NEWLINE     "\r\n"
 #define PRINT_FUNC  printf
 
+#if defined(ARDUINO)
+    #define PRINT_FUNC_P  printf_P
+#else
+    #define PRINT_FUNC_P  PRINT_FUNC
+#endif
+
+// #define ENABLE_VERBOSE
 #define SUPPORT_COLOR_TEXT
 #define ENABLE_GLOBAL_DEBUG
-// #define ENABLE_VERBOSE
 
 #if defined(SUPPORT_COLOR_TEXT)
     #define COLOR_RED   			"\x1B[31m"
@@ -34,78 +50,103 @@
 
     #if defined(ENABLE_GLOBAL_DEBUG) || defined(DEBUG_THIS_FILE)
 
+        #if defined(ARDUINO)
+            #if defined(ARDUINO_ARCH_AVR)
+                #define ATTACH_DEBUG_STREAM(stream) _debug_stream = stream;\
+                                                    fdevopen(&serial_putc, 0);
+            #else
+                #define ATTACH_DEBUG_STREAM(stream) _debug_stream = stream;
+            #endif
+
+            #define DEBUG_BEGIN(BAUDRATE)       _debug_stream->begin(BAUDRATE);
+            #define DEBUG_P(...)                PRINT_FUNC_P(PSTR(__VA_ARGS__));
+        #else
+            #define ATTACH_DEBUG_STREAM(x)
+            #define DEBUG_BEGIN(x)
+            #define DEBUG_P(...)                PRINT(__VA_ARGS__);
+        #endif
+
         #define PLACE(x)                    do{x;} while(0)
-        #define PRINT(...)                  PRINT_FUNC(__VA_ARGS__)
-        #define PRINT_COLOR(COLOR, ...)     PRINT(COLOR)\
-                                            PRINT(__VA_ARGS__)\
-                                            PRINT(COLOR_RESET)
+
+        #define PRINT(...)                  PRINT_FUNC(__VA_ARGS__);
+
+        #define PRINT_COLOR(COLOR, TEXT)    DEBUG_P(COLOR);\
+                                            DEBUG_P(TEXT);\
+                                            DEBUG_P(COLOR_RESET)
                                             
-        #define PRINTLN(...)                PRINT(__VA_ARGS__);  \
-                                            PRINT(NEWLINE)
-        #define DEBUG_NEWLINE()             PRINT(NEWLINE)
+        #define PRINT_LN(...)               PRINT(__VA_ARGS__);  \
+                                            DEBUG_P(NEWLINE)
+
+        #define DEBUG_NEWLINE()             DEBUG_P(NEWLINE)
 
         #define DEBUG(...)                  PRINT(__VA_ARGS__)
 
-        #define DEBUG_LN(...)               PRINTLN(__VA_ARGS__)
+        #define DEBUG_LN(...)               PRINT_LN(__VA_ARGS__)
 
-        #define DEBUG_PRINT_HEADER(COLOR, TEXT) PRINT(COLOR "[" #TEXT "] " COLOR_RESET)
+        #define DEBUG_PRINT_HEADER(COLOR, HEADER) DEBUG_P(COLOR "[" #HEADER "] " COLOR_RESET)
 
-        #define DEBUG_PRINT_MSG(COLOR, TEXT, ...)   PRINT(COLOR "[" #TEXT "] " COLOR_RESET);\
-                                                    DEBUG_LN(__VA_ARGS__)
+        #define DEBUG_PRINT_MSG(COLOR, HEADER, MSG)   DEBUG_P(COLOR "[" #HEADER "] " COLOR_RESET);\
+                                                      DEBUG_LN(MSG)
 
         #define DEBUG_OK(...)       PLACE(  DEBUG_PRINT_HEADER(COLOR_GRN, OK);     \
-                                        	PRINTLN(__VA_ARGS__);   )
+                                        	PRINT_LN(__VA_ARGS__);   )
 
         #define DEBUG_ERROR(...)    PLACE(  DEBUG_PRINT_HEADER(COLOR_RED, ERROR);     \
-                                        	PRINTLN(__VA_ARGS__);   )
+                                        	PRINT_LN(__VA_ARGS__);   )
 
         #define DEBUG_ALERT(...)  	PLACE(  DEBUG_PRINT_HEADER(COLOR_YEL, ALERT);     \
-                                        	PRINTLN(__VA_ARGS__);   )
+                                        	PRINT_LN(__VA_ARGS__);   )
 
         #define DEBUG_WARNING(...)  PLACE(  PLACE(  DEBUG_PRINT_HEADER(COLOR_MAG, WARNING);     \
-                                        	PRINTLN(__VA_ARGS__);   )
+                                        	PRINT_LN(__VA_ARGS__);   )
 
         #define DEBUG_ARRAY(ARRAY, LENGTH, FORMAT) \
 		        PLACE(\
-		            PRINT(COLOR_CYN "[ARRAY] " COLOR_RESET);\
-		            PRINT(#ARRAY);\
+		            DEBUG_PRINT_HEADER(COLOR_CYN, ARRAY);\
+		            DEBUG_P(#ARRAY);\
 		            PRINT("[%d] = { ", LENGTH);\
 		            for(int i = 0; i < LENGTH; i++) {\
 						PRINT(FORMAT, ARRAY[i]); \
 						if(i < (LENGTH - 1)) \
 							PRINT(", ");\
 					}\
-		            PRINTLN(" };");\
+		            PRINT_LN(" };");\
 		        )
 
         #define DEBUG_VALUE(VALUE, TYPE)  PLACE(\
-		        							PRINT(COLOR_CYN "[VALUE] " COLOR_RESET);\
-                                          	PRINT(#VALUE);\
-                                          	DEBUG(" = ");\
-                                          	PRINTLN(TYPE, VALUE);\
+		        							DEBUG_PRINT_HEADER(COLOR_CYN, VALUE);\
+                                          	DEBUG_P(#VALUE);\
+                                          	DEBUG_P(" = ");\
+                                          	PRINT_LN(TYPE, VALUE);\
                                           )
 
         #define DEBUG_DIVIDER(CHAR, LENGTH) PLACE(\
-        										PRINT(COLOR_YEL);\
+        										DEBUG_P(COLOR_YEL);\
 	                                            for(int i = 0; i < LENGTH; i++){\
 	                                                PRINT("%c", CHAR);\
 	                                            }\
-	                                            PRINT("\n");\
-	                                            PRINT(COLOR_RESET);\
+	                                            DEBUG_P("\n");\
+	                                            DEBUG_P(COLOR_RESET);\
 	                                        )
 
-        #define DEBUG_TRACE() PRINT(COLOR_YEL "[TRACE] File : %s :: Function : %s :: Line : %d\n" COLOR_RESET, __FILENAME__, __func__, __LINE__)
+        #define DEBUG_TRACE() PRINT(COLOR_YEL "[TRACE] File : %s :: Function : %s :: Line : %d\r\n" COLOR_RESET, __FILENAME__, __func__, __LINE__)
 
         #define THROW_EXCEPTION(...)    PLACE(\
         									DEBUG_PRINT_HEADER(COLOR_GRN, EXCEPTION);     \
-                                            PRINTLN(__VA_ARGS__);   \
+                                            PRINT_LN(__VA_ARGS__);   \
                                             DEBUG_TRACE();  \
                                         )
 
     #else
+        #if defined(ARDUINO)
+            #define ATTACH_DEBUG_STREAM(x)
+            #define DEBUG_BEGIN(x)
+            #define DEBUG_P(...)                PRINT(__VA_ARGS__);
+        #endif
+
         #define PLACE(x)
         #define PRINT(...)
-        #define PRINTLN(...)
+        #define PRINT_LN(...)
         #define DEBUG_NEWLINE()
 		#define DEBUG_TRACE(...)
         #define DEBUG(...)

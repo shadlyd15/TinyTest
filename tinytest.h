@@ -39,25 +39,24 @@ static int failed_test = 0;
 #define TINY_ASSERT_EQUAL(expression) PLACE(\
 			if(!(expression)){\
 				DEBUG_PRINT_HEADER(COLOR_RED, ASSERTION ERROR);\
-				DEBUG_LN(#expression);\
 			} else{\
 				DEBUG_PRINT_HEADER(COLOR_GRN, ASSERTION OK);\
-				DEBUG_LN(#expression);\
 			}\
+			DEBUG_P(#expression);\
+			DEBUG_NEWLINE();\
 		)
 
 #define ASSERT_TEST_RESULT(expression) PLACE(\
 			if(!(expression)){\
 				DEBUG_PRINT_HEADER(COLOR_RED, ASSERTION ERROR);\
-				DEBUG_LN(#expression);\
 				last_test_status = 0;\
 			} else{\
 				DEBUG_PRINT_HEADER(COLOR_GRN, ASSERTION OK);\
-				DEBUG_LN(#expression);\
 				last_test_status = 1;\
 			}\
+			DEBUG_P(#expression);\
+			DEBUG_NEWLINE();\
 		)
-
 
 #ifdef __cplusplus
 }
