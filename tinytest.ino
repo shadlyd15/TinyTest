@@ -25,7 +25,7 @@ ADD_TEST_SUITE(test_suit){
 void setup(){
 	Serial.begin(19200);
 	ATTACH_DEBUG_STREAM(&Serial);
-	DEBUG_OK("Tiny Test Framework Example");
+	DEBUG_OK("Tiny Test %d %d %d Framework Example", 100, 200, 300);
 	RUN_TEST_SUITE(test_suit);
 	TINY_TEST_REPORT();
 }

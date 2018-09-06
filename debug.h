@@ -5,6 +5,8 @@
 	extern "C" {
 #endif
 
+#define NUMARGS(...)  (sizeof((int[]){__VA_ARGS__})/sizeof(int))
+
 #if defined(ARDUINO)
     #include <Stream.h>
     static Stream * _debug_stream;
@@ -23,6 +25,14 @@
 #else
     #define PRINT_FUNC_P  PRINT_FUNC
 #endif
+
+#define OVERLOAD_PRINTF(y, x)  PRINT_FUNC_P(PSTR(x))
+
+#define FIRST_ARG(ARG_1, ...) ARG_1
+#define SELECTED_PRINT_FUNC(...)    if(NUMARGS(__VA_ARGS__) > 1) PRINT_FUNC(__VA_ARGS__);\
+                                    else PRINT_FUNC_P(PSTR(FIRST_ARG(__VA_ARGS__)))\
+
+#define P(x)  0, x
 
 // #define ENABLE_VERBOSE
 #define SUPPORT_COLOR_TEXT
@@ -53,16 +63,14 @@
         #if defined(ARDUINO)
             #if defined(ARDUINO_ARCH_AVR)
                 #define ATTACH_DEBUG_STREAM(stream) _debug_stream = stream;\
-                                                    fdevopen(&serial_putc, 0);
+                                                    fdevopen(&serial_putc, 0)
             #else
-                #define ATTACH_DEBUG_STREAM(stream) _debug_stream = stream;
+                #define ATTACH_DEBUG_STREAM(stream) _debug_stream = stream
             #endif
 
-            #define DEBUG_BEGIN(BAUDRATE)       _debug_stream->begin(BAUDRATE);
-            #define DEBUG_P(...)                PRINT_FUNC_P(PSTR(__VA_ARGS__));
+            #define DEBUG_P(...)                PRINT_FUNC_P(PSTR(__VA_ARGS__))
         #else
             #define ATTACH_DEBUG_STREAM(x)
-            #define DEBUG_BEGIN(x)
             #define DEBUG_P(...)                PRINT(__VA_ARGS__);
         #endif
 
@@ -89,7 +97,7 @@
                                                       DEBUG_LN(MSG)
 
         #define DEBUG_OK(...)       PLACE(  DEBUG_PRINT_HEADER(COLOR_GRN, OK);     \
-                                        	PRINT_LN(__VA_ARGS__);   )
+                                        	SELECTED_PRINT_FUNC(__VA_ARGS__);   )
 
         #define DEBUG_ERROR(...)    PLACE(  DEBUG_PRINT_HEADER(COLOR_RED, ERROR);     \
                                         	PRINT_LN(__VA_ARGS__);   )
@@ -140,7 +148,6 @@
     #else
         #if defined(ARDUINO)
             #define ATTACH_DEBUG_STREAM(x)
-            #define DEBUG_BEGIN(x)
             #define DEBUG_P(...)                PRINT(__VA_ARGS__);
         #endif
 
