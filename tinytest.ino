@@ -1,5 +1,5 @@
 #include "tinytest.h"
-// #include "arduino_printf_support.h"
+#include "debug.h"
 
 ADD_TINY_TEST(check_equal_variable){
 	int i = 0;
@@ -22,14 +22,15 @@ ADD_TEST_SUITE(test_suit){
 	RUN_TINY_TEST(check_variable_more);
 }
 
+
 void setup(){
 	Serial.begin(19200);
 	ATTACH_DEBUG_STREAM(&Serial);
-	DEBUG_OK("Tiny Test %d %d %d Framework Example", 100, 200, 300);
+	DEBUG_OK("printf Example");
+	DEBUG_OK("printf_P Example : ");
 	RUN_TEST_SUITE(test_suit);
 	TINY_TEST_REPORT();
 }
 
 void loop(){
-
 }

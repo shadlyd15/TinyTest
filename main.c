@@ -36,3 +36,11 @@
 // void loop(){
 
 // }
+
+// #include "debug.h"
+
+// int main(int argc, char const *argv[])
+// {
+// 	DEBUG_OK("Hello World");
+// 	return 0;
+// }

@@ -14,7 +14,7 @@ static int failed_test = 0;
 
 #define ADD_TINY_TEST(test_name) static void test_name(void)
 #define RUN_TINY_TEST(test_name) 	PLACE(\
-										DEBUG_NEWLINE();\
+                                		DEBUG(NEWLINE);\
 										DEBUG_PRINT_MSG(COLOR_YEL, RUN, #test_name);\
 										test_name();\
 										if(last_test_status){\
@@ -27,7 +27,7 @@ static int failed_test = 0;
 									)
 
 #define TINY_TEST_REPORT() 	PLACE(\
-								DEBUG_NEWLINE();\
+                                DEBUG(NEWLINE);\
 								DEBUG_PRINT_HEADER(COLOR_YEL, TEST REPORT);\
 								DEBUG_LN("%d Tests, %d Passed, %d Failed" NEWLINE, (passed_test + failed_test), passed_test, failed_test);\
 							)
@@ -42,8 +42,7 @@ static int failed_test = 0;
 			} else{\
 				DEBUG_PRINT_HEADER(COLOR_GRN, ASSERTION OK);\
 			}\
-			DEBUG_P(#expression);\
-			DEBUG_NEWLINE();\
+			DEBUG_LN(#expression);\
 		)
 
 #define ASSERT_TEST_RESULT(expression) PLACE(\
@@ -54,8 +53,7 @@ static int failed_test = 0;
 				DEBUG_PRINT_HEADER(COLOR_GRN, ASSERTION OK);\
 				last_test_status = 1;\
 			}\
-			DEBUG_P(#expression);\
-			DEBUG_NEWLINE();\
+			DEBUG_LN(#expression);\
 		)
 
 #ifdef __cplusplus
