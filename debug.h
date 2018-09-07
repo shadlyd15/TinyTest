@@ -65,9 +65,9 @@
             #define DEBUG(...)                  if(NUMARGS(__VA_ARGS__) > 1) PRINT(__VA_ARGS__);\
                                                 else PRINT_P(__VA_ARGS__)
         #else
-            #define FLASH                       ()
-            #define FIRST_ARG(ARG_1, ...)       ()
-            #define ATTACH_DEBUG_STREAM(x)      ()
+            #define FLASH                       
+            #define FIRST_ARG(ARG_1, ...)       
+            #define ATTACH_DEBUG_STREAM(x)      
             #define PRINT_P(...)                PRINT(__VA_ARGS__)
             #define DEBUG(...)                  PRINT(__VA_ARGS__)
         #endif /* defined(ARDUINO) && defined(ARDUINO_ARCH_AVR) */

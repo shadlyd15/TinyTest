@@ -40,17 +40,11 @@ ADD_TEST_SUITE(test_suit){
 	RUN_TINY_TEST(few_other_test);
 }
 
-void setup(){
-	//SET_CLOCK_SOURCE(&millis);
-	Serial.begin(19200);
+int main(int argc, char const *argv[])
+{	
 	ATTACH_DEBUG_STREAM(&Serial);
 	DEBUG_OK("printf Example");
 	DEBUG_OK("printf_P Example : %d", 100);
 	RUN_TEST_SUITE(test_suit);
 	TINY_TEST_REPORT();
-	// DEBUG_TRACE();
-}
-
-void loop(){
-
 }
