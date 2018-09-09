@@ -7,13 +7,16 @@
 	extern "C" {
 #endif
 
-#define DEBUG_DIVIDER_LENGTH 		(60)
+#define DEBUG_DIVIDER_LENGTH 		(50)
 
 static unsigned char passed_test = 0;
 static unsigned char failed_test = 0;
 static unsigned char last_test_status = 0;
 static unsigned long total_time = 0;
+
 static unsigned long (*clock_source)(void);
+
+typedef void (*test_proto)(void);
 
 #define CLOCK				(*clock_source)
 #define CLOCK_SOURCE 		clock_source
@@ -21,28 +24,32 @@ static unsigned long (*clock_source)(void);
 
 #define SET_CLOCK_SOURCE(source) 	clock_source = source;
 #define ADD_TINY_TEST(test_name) 	static void test_name(void)
-#define RUN_TINY_TEST(test_name) 	PLACE(\
-										unsigned long start_time = 0;\
-										if(CLOCK_SOURCE) start_time = CLOCK();\
-                                		DEBUG_P(NEWLINE);\
-										DEBUG_DIVIDER("-", DEBUG_DIVIDER_LENGTH);\
-										DEBUG_PRINT_MSG(COLOR_YELLOW, TEST, #test_name "()");\
-										test_name();\
-										if(last_test_status){\
-											DEBUG_PRINT_MSG(COLOR_GREEN, TEST PASSED, #test_name);\
-											passed_test++;\
-										} else{\
-											DEBUG_PRINT_MSG(COLOR_RED, TEST FAILED, #test_name);\
-											failed_test++;\
-										}\
-										if(CLOCK_SOURCE) total_time = total_time + (CLOCK() - start_time);\
-										DEBUG_DIVIDER("-", DEBUG_DIVIDER_LENGTH);\
-									)
+
+#define RUN_TINY_TEST(test_name) 	\
+	DEBUG_P(NEWLINE);\
+	DEBUG_DIVIDER("-", DEBUG_DIVIDER_LENGTH);\
+	DEBUG_PRINT_MSG(COLOR_CYAN, RUN, #test_name "()");\
+									print_result(&test_name)
+
+static void print_result(test_proto test){
+	unsigned long start_time = 0;
+	if(CLOCK_SOURCE) start_time = CLOCK();
+	test();
+	if(last_test_status){
+		DEBUG_PRINT_MSG(COLOR_GREEN, RESULT, "Passed");
+		passed_test++;
+	} else{
+		DEBUG_PRINT_MSG(COLOR_RED, RESULT, "Failed");
+		failed_test++;
+	}
+	if(CLOCK_SOURCE) total_time = total_time + (CLOCK() - start_time);
+	DEBUG_DIVIDER("-", DEBUG_DIVIDER_LENGTH);
+}
 
 #define TINY_TEST_REPORT() 	PLACE(\
                                 DEBUG_P(NEWLINE);\
 								DEBUG_DIVIDER("=", DEBUG_DIVIDER_LENGTH);\
-								DEBUG_PRINT_HEADER(COLOR_YELLOW, TEST REPORT);\
+								DEBUG_PRINT_HEADER(COLOR_YELLOW, REPORT);\
 								DEBUG("%d", (passed_test + failed_test));\
 								DEBUG_P(" Tests ");\
 								if(CLOCK_SOURCE){\
@@ -64,23 +71,28 @@ static unsigned long (*clock_source)(void);
 
 #define TINY_ASSERT_EQUAL(expression) PLACE(\
 			if(!(expression)){\
-				DEBUG_PRINT_HEADER(COLOR_RED, ASSERTION ERROR);\
+				DEBUG_PRINT_HEADER(COLOR_RED, ERROR);\
 			} else{\
-				DEBUG_PRINT_HEADER(COLOR_GREEN, ASSERTION OK);\
+				DEBUG_PRINT_HEADER(COLOR_GREEN, OK);\
 			}\
 			DEBUG_LN(#expression);\
 		)
 
 #define ASSERT_TEST_RESULT(expression) PLACE(\
-			if(!(expression)){\
-				DEBUG_PRINT_HEADER(COLOR_RED, ASSERTION ERROR);\
-				last_test_status = 0;\
-			} else{\
-				DEBUG_PRINT_HEADER(COLOR_GREEN, ASSERTION OK);\
-				last_test_status = 1;\
-			}\
+			check(expression);\
 			DEBUG_LN(#expression);\
+			if(last_test_status) return;\   	
 		)
+
+static void check(int result){
+	if((result)){
+		DEBUG_PRINT_HEADER(COLOR_GREEN, OK);
+		last_test_status = 1;
+	} else{\
+		DEBUG_PRINT_HEADER(COLOR_RED, ERROR);
+		last_test_status = 0;
+	}
+}
 
 #ifdef __cplusplus
 }

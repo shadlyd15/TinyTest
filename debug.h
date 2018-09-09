@@ -5,6 +5,21 @@
 	extern "C" {
 #endif
 
+// #define PSTR(str) \
+//   (__extension__({ \
+//     PGM_P ptr;  \
+//     asm volatile \
+//     ( \
+//       ".pushsection .progmem.data, \"SM\", @progbits, 1" "\n\t" \
+//       "PSTR%=: .string " #str                            "\n\t" \
+//       ".popsection"                                      "\n\t" \
+//       "ldi %A0, lo8(PSTR%=)"                             "\n\t" \
+//       "ldi %B0, hi8(PSTR%=)"                             "\n\t" \
+//       : "=d" (ptr) \
+//     ); \
+//     ptr; \
+//   }))
+
 #define NUMARGS(...)  (sizeof((int[]){__VA_ARGS__})/sizeof(int))
 
 #if defined(ARDUINO)
@@ -40,13 +55,13 @@
     #define COLOR_CYAN   			"\x1B[36m"
     #define COLOR_WHITE             "\x1B[33m"
 #else
-    #define COLOR_RED
-    #define COLOR_GREEN
-    #define COLOR_YELLOW
-    #define COLOR_BLUE
-    #define COLOR_MAGENTA
-    #define COLOR_CYAN
-    #define COLOR_WHITE
+    #define COLOR_RED               ""
+    #define COLOR_GREEN             ""
+    #define COLOR_YELLOW            ""
+    #define COLOR_BLUE              ""
+    #define COLOR_MAGENTA           ""
+    #define COLOR_CYAN              ""
+    #define COLOR_WHITE             ""
 #endif  /* SUPPORT_COLOR_TEXT  */
 
     #if defined(ENABLE_GLOBAL_DEBUG) || defined(DEBUG_THIS_FILE)
@@ -78,13 +93,14 @@
 
         #define DEBUG_COLOR(COLOR, ...)     DEBUG_P(COLOR);\
                                             DEBUG(__VA_ARGS__);\
-                                            DEBUG_P(COLOR_DEFAULT)
+                                            DEBUG_P(COLOR_DEFAULT);\
+                                            PRINT(NEWLINE)
 
-        #define DEBUG_PRINT_HEADER(COLOR, HEADER) DEBUG_P(COLOR " > [" #HEADER "] " COLOR_DEFAULT)
+        #define DEBUG_PRINT_HEADER(COLOR, HEADER) PRINT(COLOR " > [" #HEADER "] " COLOR_DEFAULT)
 
         #define DEBUG_PRINT_MSG(COLOR, HEADER, MSG)   DEBUG_PRINT_HEADER(COLOR, HEADER);\
                                                       DEBUG_P(MSG);\
-                                                      DEBUG_P(NEWLINE)
+                                                      PRINT(NEWLINE)
 
         #define DEBUG_OK(...)       PLACE(  DEBUG_PRINT_HEADER(COLOR_GREEN, OK);     \
                                         	DEBUG_LN(__VA_ARGS__);   )
@@ -118,14 +134,23 @@
                                           	DEBUG_LN(TYPE, VALUE);\
                                           )
 
-        #define DEBUG_DIVIDER(STR, LENGTH) PLACE(\
-        										DEBUG_P(COLOR_CYAN);\
-	                                            for(int i = 0; i < LENGTH; i++){\
-	                                                DEBUG_P(STR);\
-	                                            }\
-	                                            DEBUG_P(COLOR_DEFAULT NEWLINE);\
-	                                        )
+        // #define DEBUG_DIVIDER(STR, LENGTH) PLACE(\
+        // 										DEBUG_P(COLOR_CYAN);\
+	       //                                      for(int i = 0; i < LENGTH; i++){\
+	       //                                          PRINT(STR);\
+	       //                                      }\
+	       //                                      DEBUG_P(COLOR_DEFAULT);\
+        //                                         PRINT(NEWLINE);\
+	       //                                  )
 
+static void DEBUG_DIVIDER(char * STR, int LENGTH){
+    DEBUG_P(COLOR_CYAN);
+    for(int i = 0; i < LENGTH; i++){
+        PRINT(STR);
+    }
+    DEBUG_P(COLOR_DEFAULT);
+    PRINT(NEWLINE);
+}
         #define DEBUG_TRACE()           PLACE(\
                                             DEBUG_P(COLOR_YELLOW "[TRACE] File : ");\
                                             DEBUG("%s", __FILENAME__);\
