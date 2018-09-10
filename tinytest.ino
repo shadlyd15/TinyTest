@@ -245,9 +245,10 @@ ADD_TINY_TEST(test_48){
   ASSERT_TEST_RESULT(i != 49);
 }
 
-ADD_TINY_TEST(test_49){
-  int i = rand()%50;
-  ASSERT_TEST_RESULT(i != 50);
+ADD_TINY_TEST(test_49){  
+  int index = rand()%50;
+  DEBUG_VALUE("%02X", 255);
+  ASSERT_TEST_RESULT(index != 50);
 }
 
 ADD_TEST_SUITE(test_suit){
@@ -307,8 +308,18 @@ void setup(){
   SET_CLOCK_SOURCE(&millis);
 	Serial.begin(19200);
 	ATTACH_DEBUG_STREAM(&Serial);
-	DEBUG_OK("printf Example");
-	DEBUG_OK("printf_P Example : %d", 100);
+  uint8_t array[100];
+  memset(array, 0xD1, 100);
+  DEBUG_ARRAY(array, 100, "0x%02X");
+
+  uint16_t array_2[100];
+  memset(array_2, 0xED, 200);
+  DEBUG_ARRAY(array_2, 100, "0x%02X");
+
+  uint16_t array_3[100];
+  memset(array_3, 0xED, 200);
+  DEBUG_ARRAY(array_3, 100, "0x%02X");
+
 	RUN_TEST_SUITE(test_suit);
 	TINY_TEST_REPORT();
 }

@@ -19,29 +19,23 @@
     #include <stdio.h>
 #endif
 
-#define NEWLINE         "\r\n"
-#define PRINT_FUNC      printf
-#define COLOR_DEFAULT   COLOR_YELLOW
+#define DEFAULT_TEXT_COLOR      COLOR_YELLOW
 
-#if defined(ARDUINO)
-    #define PRINT_FUNC_P  printf_P
-#else
-    #define PRINT_FUNC_P  PRINT_FUNC
-#endif // defined(ARDUINO)
+#define NEWLINE                 "\r\n"
+#define PRINT_FUNC              printf
 
-// #define ENABLE_VERBOSE
 #define SUPPORT_COLOR_TEXT
 #define ENABLE_GLOBAL_DEBUG
+// #define ENABLE_VERBOSE
 
-#if defined(SUPPORT_COLOR_TEXT)
-    #define COLOR_RED   			"\x1B[31m"
-    #define COLOR_GREEN   			"\x1B[32m"
-    #define COLOR_YELLOW   			"\x1B[33m"
-    #define COLOR_BLUE   			"\x1b[34m"
-    #define COLOR_MAGENTA   		"\x1b[35m"
-    #define COLOR_CYAN   			"\x1B[36m"
-    #define COLOR_WHITE             "\x1B[33m"
+#if !defined(ARDUINO)
+    #define PRINT_FUNC_P  printf
 #else
+    #define PRINT_FUNC_P  printf_P
+#endif // defined(ARDUINO)
+
+
+#if !defined(SUPPORT_COLOR_TEXT)
     #define COLOR_RED               
     #define COLOR_GREEN             
     #define COLOR_YELLOW            
@@ -49,6 +43,14 @@
     #define COLOR_MAGENTA           
     #define COLOR_CYAN              
     #define COLOR_WHITE             
+#else
+    #define COLOR_RED               "\x1B[31m"
+    #define COLOR_GREEN             "\x1B[32m"
+    #define COLOR_YELLOW            "\x1B[33m"
+    #define COLOR_BLUE              "\x1b[34m"
+    #define COLOR_MAGENTA           "\x1b[35m"
+    #define COLOR_CYAN              "\x1B[36m"
+    #define COLOR_WHITE             "\x1B[0m"
 #endif  /* SUPPORT_COLOR_TEXT  */
 
     #if defined(ENABLE_GLOBAL_DEBUG) || defined(DEBUG_THIS_FILE)
@@ -74,14 +76,9 @@
         #define DEBUG_LN(...)               DEBUG(__VA_ARGS__);\
                                             PRINT(NEWLINE)
 
-        #define DEBUG_COLOR(COLOR, ...)     PRINT(COLOR);\
-                                            DEBUG(__VA_ARGS__);\
-                                            PRINT(COLOR_DEFAULT);\
-                                            PRINT(NEWLINE)
+        #define DEBUG_PRINT_HEADER(COLOR, HEADER) DEBUG(COLOR " + [" #HEADER "] \t: " DEFAULT_TEXT_COLOR)
 
-        #define DEBUG_PRINT_HEADER(COLOR, HEADER) DEBUG(COLOR " > [" #HEADER "] " COLOR_DEFAULT)
-
-        #define DEBUG_PRINT_MSG(COLOR, HEADER, MSG)   DEBUG(COLOR " > [" #HEADER "] " COLOR_DEFAULT MSG NEWLINE)
+        #define DEBUG_PRINT_MSG(COLOR, HEADER, MSG)   DEBUG(COLOR " + [" #HEADER "] \t: " DEFAULT_TEXT_COLOR MSG NEWLINE)
 
         #define DEBUG_OK(...)       PLACE(  DEBUG_PRINT_HEADER(COLOR_GREEN, OK);     \
                                         	DEBUG_LN(__VA_ARGS__);   )
@@ -89,43 +86,44 @@
         #define DEBUG_ERROR(...)    PLACE(  DEBUG_PRINT_HEADER(COLOR_RED, ERROR);     \
                                         	DEBUG_LN(__VA_ARGS__);   )
 
-        #define DEBUG_ALERT(...)  	PLACE(  DEBUG_PRINT_HEADER(COLOR_YELLOW, ALERT);     \
+        #define DEBUG_ALERT(...)  	PLACE(  DEBUG_PRINT_HEADER(COLOR_CYAN, ALERT);     \
                                         	DEBUG_LN(__VA_ARGS__);   )
 
-        #define DEBUG_WARNING(...)  PLACE(  PLACE(  DEBUG_PRINT_HEADER(COLOR_MAGENTA, WARNING);     \
+        #define DEBUG_WARNING(...)  PLACE(  PLACE(  DEBUG_PRINT_HEADER(COLOR_YELLOW, WARNING);     \
                                         	DEBUG_LN(__VA_ARGS__);   )
-/*
-        #define DEBUG_ARRAY(ARRAY, LENGTH, FORMAT) \
+
+        #define DEBUG_ARRAY(VICTIM, LENGTH, FORMAT) \
 		        PLACE(\
 		            DEBUG_PRINT_HEADER(COLOR_CYAN, ARRAY);\
-		            DEBUG_P(#ARRAY);\
+		            DEBUG(#VICTIM);\
 		            DEBUG("[%d] = { ", LENGTH);\
 		            for(int i = 0; i < LENGTH; i++) {\
-						DEBUG(FORMAT, ARRAY[i]); \
+						DEBUG(FORMAT, VICTIM[i]); \
 						if(i < (LENGTH - 1)) \
-							DEBUG_P(", ");\
+							DEBUG(", ");\
 					}\
-		            DEBUG_P(" };" NEWLINE);\
+		            DEBUG(" };" NEWLINE);\
 		        )
 
-        #define DEBUG_VALUE(VALUE, TYPE)  PLACE(\
-		        							DEBUG_PRINT_HEADER(COLOR_CYAN, VALUE);\
-                                          	DEBUG_P(#VALUE);\
-                                          	DEBUG_P(" = ");\
-                                          	DEBUG_LN(TYPE, VALUE);\
+        #define DEBUG_VALUE(TYPE, VAR)  PLACE(\
+		        							DEBUG_PRINT_HEADER(COLOR_MAGENTA, VALUE);\
+                                          	DEBUG(#VAR " = ");\
+                                          	DEBUG_LN(TYPE, VAR);\
                                           )
-*/
-        static void DEBUG_DIVIDER(char * STR, int LENGTH){
+
+        #define DEBUG_DIVIDER(STR, LENGTH)          print_divider(STR, LENGTH)
+
+        static void print_divider(char * str, int length){
             #if defined(SUPPORT_COLOR_TEXT)
                 DEBUG(COLOR_CYAN);
             #endif
-            for(int i = 0; i < LENGTH; i++){
-                PRINT(STR);
+            for(int i = 0; i < length; i++){
+                PRINT(str);
             }
-            DEBUG(COLOR_DEFAULT NEWLINE);
+            DEBUG(DEFAULT_TEXT_COLOR NEWLINE);
         }
 
-        #define DEBUG_TRACE()           DEBUG(COLOR_YELLOW " > [TRACE] Function : %s() :: Line : %d" COLOR_DEFAULT NEWLINE, __func__, __LINE__)
+        #define DEBUG_TRACE()           DEBUG(COLOR_YELLOW " + [TRACE] Function : %s() :: Line : %d" DEFAULT_TEXT_COLOR NEWLINE, __func__, __LINE__)
 
         #define THROW_EXCEPTION(...)    PLACE(\
         									DEBUG_PRINT_HEADER(COLOR_GREEN, EXCEPTION);     \
