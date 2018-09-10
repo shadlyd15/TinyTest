@@ -25,16 +25,17 @@ typedef void (*test_proto)(void);
 #define SET_CLOCK_SOURCE(source) 	clock_source = source;
 #define ADD_TINY_TEST(test_name) 	static void test_name(void)
 
-#define RUN_TINY_TEST(test_name) 	\
-	DEBUG_P(NEWLINE);\
-	DEBUG_DIVIDER("-", DEBUG_DIVIDER_LENGTH);\
-	DEBUG_PRINT_MSG(COLOR_CYAN, RUN, #test_name "()");\
-									print_result(&test_name)
 
-static void print_result(test_proto test){
+#define RUN_TINY_TEST(test_func) 	DEBUG_DIVIDER("-", DEBUG_DIVIDER_LENGTH);\
+									DEBUG_PRINT_MSG(COLOR_CYAN, RUN, #test_func "()");\
+									run_test(&test_func)
+
+void run_test(test_proto test){
 	unsigned long start_time = 0;
 	if(CLOCK_SOURCE) start_time = CLOCK();
 	test();
+	if(CLOCK_SOURCE) total_time = total_time + (CLOCK() - start_time);
+
 	if(last_test_status){
 		DEBUG_PRINT_MSG(COLOR_GREEN, RESULT, "Passed");
 		passed_test++;
@@ -42,26 +43,14 @@ static void print_result(test_proto test){
 		DEBUG_PRINT_MSG(COLOR_RED, RESULT, "Failed");
 		failed_test++;
 	}
-	if(CLOCK_SOURCE) total_time = total_time + (CLOCK() - start_time);
 	DEBUG_DIVIDER("-", DEBUG_DIVIDER_LENGTH);
+	PRINT(NEWLINE);
 }
 
 #define TINY_TEST_REPORT() 	PLACE(\
-                                DEBUG_P(NEWLINE);\
 								DEBUG_DIVIDER("=", DEBUG_DIVIDER_LENGTH);\
 								DEBUG_PRINT_HEADER(COLOR_YELLOW, REPORT);\
-								DEBUG("%d", (passed_test + failed_test));\
-								DEBUG_P(" Tests ");\
-								if(CLOCK_SOURCE){\
-									DEBUG_P("in ");\
-									DEBUG("%d", total_time);\
-									DEBUG_P(" " CLOCK_UNIT);\
-								}\
-								DEBUG("%d", passed_test);\
-								DEBUG_P(", Passed, ");\
-								DEBUG("%d", failed_test);\
-								DEBUG_P(" Failed ");\
-								DEBUG_P(NEWLINE);\
+								DEBUG("%d Test(s), %d Passed, %d Failed" NEWLINE, (passed_test + failed_test), passed_test, failed_test);\
 								DEBUG_DIVIDER("=", DEBUG_DIVIDER_LENGTH);\
 							)
 
@@ -81,7 +70,7 @@ static void print_result(test_proto test){
 #define ASSERT_TEST_RESULT(expression) PLACE(\
 			check(expression);\
 			DEBUG_LN(#expression);\
-			if(last_test_status) return;\   	
+			if(!last_test_status) return;\
 		)
 
 static void check(int result){
