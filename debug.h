@@ -17,6 +17,7 @@
     }
 #else
     #include <stdio.h>
+    #include <stdint.h>
 #endif
 
 #define DEFAULT_TEXT_COLOR      COLOR_YELLOW
@@ -92,13 +93,13 @@
         #define DEBUG_WARNING(...)  PLACE(  PLACE(  DEBUG_PRINT_HEADER(COLOR_YELLOW, WARNING);     \
                                         	DEBUG_LN(__VA_ARGS__);   )
 
-        #define DEBUG_ARRAY(VICTIM, LENGTH, FORMAT) \
+        #define DEBUG_ARRAY(TARGET, LENGTH, FORMAT) \
 		        PLACE(\
 		            DEBUG_PRINT_HEADER(COLOR_CYAN, ARRAY);\
-		            DEBUG(#VICTIM);\
+		            DEBUG(#TARGET);\
 		            DEBUG("[%d] = { ", LENGTH);\
 		            for(int i = 0; i < LENGTH; i++) {\
-						DEBUG(FORMAT, VICTIM[i]); \
+						DEBUG(FORMAT, TARGET[i]); \
 						if(i < (LENGTH - 1)) \
 							DEBUG(", ");\
 					}\

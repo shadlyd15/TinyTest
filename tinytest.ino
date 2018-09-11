@@ -245,11 +245,41 @@ ADD_TINY_TEST(test_48){
   ASSERT_TEST_RESULT(i != 49);
 }
 
-ADD_TINY_TEST(test_49){  
+ADD_TINY_TEST(test_49){
   int index = rand()%50;
-  DEBUG_VALUE("%02X", 255);
+  DEBUG_VALUE("%02X", index);
+  const int length = 100;
+
+  uint8_t array_1[length];
+  memset(array_1, 0x00, length*sizeof(array_1[0]));
+  array_1[0]  = 1;
+  array_1[50] = 1;
+  array_1[99] = 1;
+  // DEBUG_ARRAY(array_1, length, "%d");
+  // DEBUG_DIVIDER("*", DEBUG_DIVIDER_LENGTH);
+
+  unsigned int array_2[length];
+  memset(array_2, 0x00, length*sizeof(array_2[0]));
+  array_2[0]  = 3;
+  array_2[50] = 3;
+  array_2[99] = 3;
+  // DEBUG_ARRAY(array_2, length, "%0d");
+  // DEBUG_DIVIDER("*", DEBUG_DIVIDER_LENGTH);
+
+
+  int array_3[length];
+  memset(array_3, 0x00, length*sizeof(array_3[0]));
+  array_3[0]  = 3;
+  array_3[50] = 3;
+  array_3[99] = 3;
+  // DEBUG_ARRAY(array_3, length, "%d");
+  // DEBUG_DIVIDER("*", DEBUG_DIVIDER_LENGTH);
+
+  ASSERT_ARRAY(array_3, array_2, length, sizeof(array_3[0]));
+
   ASSERT_TEST_RESULT(index != 50);
 }
+
 
 ADD_TEST_SUITE(test_suit){
   RUN_TINY_TEST(test_0);
@@ -305,6 +335,8 @@ ADD_TEST_SUITE(test_suit){
 }
 
 void setup(){
+
+  /*
   SET_CLOCK_SOURCE(&millis);
 	Serial.begin(19200);
 	ATTACH_DEBUG_STREAM(&Serial);
@@ -319,7 +351,7 @@ void setup(){
   uint16_t array_3[100];
   memset(array_3, 0xED, 200);
   DEBUG_ARRAY(array_3, 100, "0x%02X");
-
+  */
 	RUN_TEST_SUITE(test_suit);
 	TINY_TEST_REPORT();
 }

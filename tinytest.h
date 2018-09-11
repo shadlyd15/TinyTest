@@ -56,6 +56,13 @@ static unsigned char check(int expression);
 											}\
 											DEBUG_LN(#expression);\
 										)
+#define ASSERT_ARRAY(ARRAY_1, ARRAY_2, LENGTH, TYPE_SIZE)	PLACE(\
+																match_array((uint8_t*)ARRAY_1, (uint8_t*)ARRAY_2, LENGTH, TYPE_SIZE);\
+																DEBUG_LN(#ARRAY_1 " , " #ARRAY_2);\
+																if(!last_test_status) return;\
+															)
+
+					
 
 #define ASSERT_TEST_RESULT(expression) 	PLACE(\
 											check(expression);\
@@ -91,6 +98,23 @@ static unsigned char check(int expression){
 		last_test_status = 0;
 	}
 	return last_test_status;
+}
+
+static uint32_t match_array(uint8_t * array_1, uint8_t * array_2, uint32_t array_length, uint8_t type_size) {
+    for(uint32_t i = 0; i < (array_length * type_size); i++) {
+        if(array_1[i] != array_2[i]) {
+        	last_test_status = 0;
+            break;
+        } else{
+    		last_test_status = 1;   	
+        }
+    }
+    if(last_test_status){
+		DEBUG_PRINT_HEADER(COLOR_GREEN, MATCHED);
+    } else{
+		DEBUG_PRINT_HEADER(COLOR_RED, DIFFER);
+    }
+    return array_length;
 }
 
 #ifdef __cplusplus
