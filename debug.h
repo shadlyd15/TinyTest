@@ -170,6 +170,7 @@
                     if(callback){
                         if(callback(buffer)){
                             ret_val = 1;
+                            free(buffer); 
                             break; 
                         } else{
                             DEBUG_ERROR("Invalid Command");
