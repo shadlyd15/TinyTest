@@ -7,7 +7,7 @@
 
 #define ENABLE_VERBOSE
 #define SUPPORT_COLOR_TEXT
-#define ENABLE_GLOBAL_DEBUG
+// #define ENABLE_GLOBAL_DEBUG
 
 #define INPUT_BUFFER_SIZE       (128)
 #define DEFAULT_TEXT_COLOR      COLOR_YELLOW
@@ -38,7 +38,7 @@
     }
 
     static int serail_getc(FILE *stream) {
-        while(!_debug_stream->available()){}
+        while(!_debug_stream->available());
         return _debug_stream->read();
     }
 #endif
@@ -103,7 +103,7 @@
         #define DEBUG_WARNING(...)  PLACE(  PLACE(  DEBUG_PRINT_HEADER(COLOR_YELLOW, WARNING);     \
                                         	DEBUG_LN(__VA_ARGS__);   )
 
-        #define DEBUG_INPUT(CB, STR, MSG, LOOP)      process_input(CB, STR, MSG, LOOP)
+        #define DEBUG_INPUT(CB, MSG, LOOP)      process_input(CB, MSG, LOOP)
 
         #define DEBUG_ARRAY(TARGET, LENGTH, FORMAT) \
 		        PLACE(\
@@ -144,8 +144,8 @@
             DEBUG(DEFAULT_TEXT_COLOR NEWLINE);
         }
 
-        static int process_input(input_callback callback, const char * string, const char * message, uint8_t loop){
-            if(!string || !message) return 0;
+        static int process_input(input_callback callback, const char * message, uint8_t loop){
+            if(!message) return 0;
             uint8_t _loop = loop;
             uint8_t ret_val = 0;
             do{
@@ -167,14 +167,14 @@
                     PRINT(NEWLINE);
                     #endif
 
-                    if(strstr(buffer, string)){
-                        ret_val = callback(buffer);
-                        if(ret_val){  
+                    if(callback){
+                        if(callback(buffer)){
+                            ret_val = 1;
                             break; 
                         } else{
-                            DEBUG_ERROR("Unknown Command");
-                        }
-                    } 
+                            DEBUG_ERROR("Invalid Command");
+                        }    
+                    }
                     free(buffer);   
                 } else{
                     DEBUG_ERROR("Not Enough Memory");
@@ -198,7 +198,7 @@
         #define DEBUG_ERROR(...)
         #define DEBUG_ALERT(...)
         #define DEBUG_WARNING(...)
-        #define DEBUG_INPUT(CB, STR, MSG, LOOP)
+        #define DEBUG_INPUT(CB, MSG, LOOP)
         #define DEBUG_ARRAY(TARGET, LENGTH, FORMAT)
         #define DEBUG_VALUE(TYPE, VAR)
         #define DEBUG_DIVIDER(STR, LENGTH)

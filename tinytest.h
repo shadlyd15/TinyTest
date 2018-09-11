@@ -1,13 +1,18 @@
 #ifndef TINY_TEST_H
 #define TINY_TEST_H
 
-#include "debug.h"
 
 #ifdef __cplusplus
 	extern "C" {
 #endif
 
-#define DEBUG_DIVIDER_LENGTH 		(60)
+#define ENABLE_TEST
+#define TEST_DIVIDER_LENGTH 		(60)
+
+#if defined(ENABLE_TEST)
+
+#define DEBUG_THIS_FILE
+#include "debug.h"
 
 typedef void (*test_proto)(void);
 
@@ -21,9 +26,9 @@ static unsigned long (*clock_source)(void);
 static void run_test(test_proto test);
 static unsigned char check(int expression);
 
-#define CLOCK				(*clock_source)
-#define CLOCK_SOURCE 		clock_source
 #define CLOCK_UNIT			"ms"
+#define CLOCK_SOURCE 		clock_source
+#define CLOCK				(*CLOCK_SOURCE)
 
 #if !defined(ARDUINO)
 #define SET_CLOCK_SOURCE(source)
@@ -35,18 +40,18 @@ static unsigned char check(int expression);
 
 
 #define RUN_TINY_TEST(test_func) 	PLACE(\
-										DEBUG_DIVIDER("*", DEBUG_DIVIDER_LENGTH);\
+										DEBUG_DIVIDER("*", TEST_DIVIDER_LENGTH);\
 										DEBUG_PRINT_MSG(COLOR_CYAN, RUN, #test_func "()");\
 										run_test(&test_func);\
 									)
 
 #define TINY_TEST_REPORT() 	PLACE(\
-								DEBUG_DIVIDER("=", DEBUG_DIVIDER_LENGTH);\
+								DEBUG_DIVIDER("=", TEST_DIVIDER_LENGTH);\
 								DEBUG_PRINT_HEADER(COLOR_YELLOW, REPORT);\
 								DEBUG("%d Test(s), %d Passed, %d Failed ", (passed_test + failed_test), passed_test, failed_test);\
 								if(clock_source) DEBUG("( %u " CLOCK_UNIT ")", total_time);\
 								DEBUG(NEWLINE);\
-								DEBUG_DIVIDER("=", DEBUG_DIVIDER_LENGTH);\
+								DEBUG_DIVIDER("=", TEST_DIVIDER_LENGTH);\
 							)
 
 #define ADD_TEST_SUITE(tiny_test_suit) 	static void tiny_test_suit(void)
@@ -61,21 +66,18 @@ static unsigned char check(int expression);
 											}\
 											DEBUG_LN(#expression);\
 										)
+
 #define ASSERT_ARRAY(ARRAY_1, ARRAY_2, LENGTH, TYPE_SIZE)	PLACE(\
 																match_array((uint8_t*)ARRAY_1, (uint8_t*)ARRAY_2, LENGTH, TYPE_SIZE);\
 																DEBUG_LN(#ARRAY_1 " , " #ARRAY_2);\
 																if(!last_test_status) return;\
 															)
 
-					
-
 #define ASSERT_TEST_RESULT(expression) 	PLACE(\
 											check(expression);\
 											DEBUG_LN(#expression);\
 											if(!last_test_status) return;\
 										)
-
-
 
 static void run_test(test_proto test){
 	unsigned long start_time = 0;
@@ -90,7 +92,7 @@ static void run_test(test_proto test){
 		DEBUG_PRINT_MSG(COLOR_RED, RESULT, "Test Failed");
 		failed_test++;
 	}
-	DEBUG_DIVIDER("*", DEBUG_DIVIDER_LENGTH);
+	DEBUG_DIVIDER("*", TEST_DIVIDER_LENGTH);
 	PRINT(NEWLINE);
 }
 
@@ -121,6 +123,18 @@ static uint32_t match_array(uint8_t * array_1, uint8_t * array_2, uint32_t array
     }
     return array_length;
 }
+#else
+#include "debug.h"
+#define SET_CLOCK_SOURCE(source)
+#define ADD_TINY_TEST(test_name)			void test_name(void)
+#define RUN_TINY_TEST(test_func)
+#define TINY_TEST_REPORT()
+#define ADD_TEST_SUITE(tiny_test_suit)		void tiny_test_suit(void)
+#define RUN_TEST_SUITE(tiny_test_suit)
+#define TINY_ASSERT_EQUAL(expression)
+#define ASSERT_ARRAY(ARRAY_1, ARRAY_2, LENGTH, TYPE_SIZE)
+#define ASSERT_TEST_RESULT(expression)
+#endif
 
 #ifdef __cplusplus
 }

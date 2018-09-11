@@ -334,19 +334,23 @@ ADD_TEST_SUITE(test_suit){
   RUN_TINY_TEST(test_49);
 }
 
-int popup(){
-  DEBUG_DIVIDER("*", DEBUG_DIVIDER_LENGTH);
-  DEBUG_OK("Unit Test Starting");  
-  RUN_TEST_SUITE(test_suit);
-  TINY_TEST_REPORT();
-  return 1;
+int popup(const char * input){
+  if(!strncmp(input, "Y", strlen("Y"))){
+    DEBUG_DIVIDER("*", TEST_DIVIDER_LENGTH);
+    DEBUG_OK("Unit Test Starting");  
+    RUN_TEST_SUITE(test_suit);
+    TINY_TEST_REPORT();
+    DEBUG_INPUT(NULL, "Press Enter To Exit", 0);
+    return 1;
+  }
+  return 0;
 }
 
 void setup(){
   SET_CLOCK_SOURCE(&millis);
   ARDUINO_ONLY(Serial.begin(19200));
   ATTACH_DEBUG_STREAM(&Serial);
-  DEBUG_INPUT(&popup, "Y", "Run Test? (Y/N)", 0);
+  DEBUG_INPUT(&popup, "Run Test? (Y/N)", 0);
   DEBUG_OK("Going To Loop");
 }
 
