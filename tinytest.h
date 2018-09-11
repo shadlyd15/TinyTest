@@ -25,7 +25,12 @@ static unsigned char check(int expression);
 #define CLOCK_SOURCE 		clock_source
 #define CLOCK_UNIT			"ms"
 
+#if !defined(ARDUINO)
+#define SET_CLOCK_SOURCE(source)
+#else
 #define SET_CLOCK_SOURCE(source) 	clock_source = source
+#endif
+
 #define ADD_TINY_TEST(test_name) 	static void test_name(void)
 
 
