@@ -241,8 +241,8 @@ ADD_TINY_TEST(test_47){
 }
 
 ADD_TINY_TEST(test_48){
-  int i = rand()%50;
-  ASSERT_TEST_RESULT(i != 49);
+  int i = 2;
+  ASSERT_TEST_RESULT(i == 49);
 }
 
 ADD_TINY_TEST(test_49){
