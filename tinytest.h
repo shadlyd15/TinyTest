@@ -7,7 +7,7 @@
 #endif
 
 #define ENABLE_TEST
-// #define PRINT_MINIMAL
+#define PRINT_MINIMAL
 #define TEST_DIVIDER_LENGTH 		(60)
 
 #if defined(ENABLE_TEST)
