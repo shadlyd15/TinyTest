@@ -5,6 +5,7 @@
 	extern "C" {
 #endif
 
+#define ENABLE_BELL
 #define ENABLE_VERBOSE
 #define SUPPORT_COLOR_TEXT
 #define ENABLE_GLOBAL_DEBUG
@@ -15,6 +16,12 @@
 #define NEWLINE                 "\r\n"
 #define SCAN_FUNC               scanf
 #define PRINT_FUNC              printf
+
+#if defined(ENABLE_BELL)
+    #define BELL            "\a"
+#else
+    #define BELL
+#endif
 
 #if !defined(ARDUINO)
     #include <stdio.h>
@@ -61,6 +68,20 @@
     #define COLOR_WHITE             "\x1B[0m"
 #endif  /* SUPPORT_COLOR_TEXT  */
 
+
+#if !defined(ARDUINO_ARCH_ESP8266)
+    #define ARDUINO_ESP8266_PATCH(x)
+#else
+    #define ARDUINO_ESP8266_PATCH(x)     x
+#endif
+
+#if !defined(ARDUINO_ARCH_AVR)
+    #define ARDUINO_AVR_PATCH(x)
+#else
+    #define ARDUINO_AVR_PATCH(x)     x
+#endif
+    
+
     #if defined(ENABLE_GLOBAL_DEBUG) || defined(DEBUG_THIS_FILE)
 
         typedef int (*input_callback)(const char * input);
@@ -70,26 +91,32 @@
         #define PLACE(x)                    do{x} while(0)
         #define PRINT(...)                  PRINT_FUNC(__VA_ARGS__)
 
-        #if defined(ARDUINO) && defined(ARDUINO_ARCH_AVR)
-            #define FLASH                       PSTR
-            #define FIRST_ARG(ARG_1, ...)       ARG_1
+        #if defined(ARDUINO)
+            #include <stdio.h>
+            #define FLASH                           PSTR
             #define ATTACH_DEBUG_STREAM(stream) {   _debug_stream = stream;\
-                                                    fdevopen(&serial_putc, &serail_getc);  }
+                                                    ARDUINO_AVR_PATCH(fdevopen(&serial_putc, &serail_getc));  }
+            #if defined(ARDUINO_ARCH_AVR)
+                #define DEBUG_LN(...)               {   DEBUG(__VA_ARGS__);\
+                                                        PRINT(NEWLINE); }   // AVR-GCC can not de duplicate Flash String
+            #else        
+                #define DEBUG_LN(...)               {   DEBUG(__VA_ARGS__);\
+                                                        DEBUG(NEWLINE); }   // Compiler somehow optimizes PRINT(NEWLINE)
+            #endif
             #define DEBUG(string, ...)          PRINT_FUNC_P(FLASH(string), ##__VA_ARGS__)
         #else
             #define FLASH                       
-            #define FIRST_ARG(ARG_1, ...)       
             #define ATTACH_DEBUG_STREAM(x)      
             #define DEBUG(string, ...)          PRINT(string, ##__VA_ARGS__)
+            #define DEBUG_LN(...)               DEBUG(__VA_ARGS__);\
+                                                DEBUG(NEWLINE)
         #endif /* defined(ARDUINO) && defined(ARDUINO_ARCH_AVR) */
         
         #define DEBUG_SCAN(...)             SCAN_FUNC(__VA_ARGS__)
-        #define DEBUG_LN(...)               DEBUG(__VA_ARGS__);\
-                                            PRINT(NEWLINE)
 
-        #define DEBUG_PRINT_HEADER(COLOR, HEADER) DEBUG(COLOR " + [" #HEADER "] \t: " DEFAULT_TEXT_COLOR)
+        #define DEBUG_PRINT_HEADER(COLOR, HEADER) DEBUG(COLOR " + [" #HEADER "] \t:" DEFAULT_TEXT_COLOR " ")
 
-        #define DEBUG_PRINT_MSG(COLOR, HEADER, MSG)   DEBUG(COLOR " + [" #HEADER "] \t: " DEFAULT_TEXT_COLOR MSG NEWLINE)
+        #define DEBUG_PRINT_MSG(COLOR, HEADER, MSG, ...)        DEBUG(COLOR " + [" #HEADER "] \t: " DEFAULT_TEXT_COLOR MSG NEWLINE, ##__VA_ARGS__)
 
         #define DEBUG_OK(...)       PLACE(  DEBUG_PRINT_HEADER(COLOR_GREEN, OK);     \
                                         	DEBUG_LN(__VA_ARGS__);   )
@@ -144,24 +171,29 @@
             DEBUG(DEFAULT_TEXT_COLOR NEWLINE);
         }
 
-        static int process_input(input_callback callback, const char * message, uint8_t loop){
+        volatile static int process_input(input_callback callback, const char * message, uint8_t loop){
             if(!message) return 0;
             uint8_t _loop = loop;
             uint8_t ret_val = 0;
             do{
                 char * buffer= (char*)malloc(INPUT_BUFFER_SIZE * sizeof(char));
                 if(buffer){
+                    DEBUG_PRINT_MSG(COLOR_MAGENTA, ENTER, "%s" BELL, message);
+                    DEBUG_PRINT_HEADER(COLOR_MAGENTA, INPUT);
+                    ARDUINO_ESP8266_PATCH(DEBUG(NEWLINE)); // Without this somehow compiler optimizes input messsage
                     int length = 0;
                     memset(buffer, 0x00, INPUT_BUFFER_SIZE * sizeof(char));
-                    DEBUG_PRINT_HEADER(COLOR_MAGENTA, ENTER);
-                    DEBUG_LN("%s", message);
-                    DEBUG_PRINT_HEADER(COLOR_MAGENTA, INPUT);
-                    do {
-                        buffer[length++] = getchar();
-                        #if defined(ARDUINO)
-                        putchar(buffer[length - 1]);
+                    do{
+                        ARDUINO_ESP8266_PATCH(yield());
+                        #if defined(ARDUINO_ARCH_ESP8266)
+                            buffer[length++] = serail_getc(NULL);
+                        #else
+                            buffer[length++] = getchar();
                         #endif
-                    } while ((buffer[length - 1] != TERMINATION) && (length < INPUT_BUFFER_SIZE));
+                        #if defined(ARDUINO)
+                            putchar(buffer[length - 1]);
+                        #endif
+                    }while((buffer[length - 1] != TERMINATION) && (length < INPUT_BUFFER_SIZE));
 
                     #if defined(ARDUINO)
                     PRINT(NEWLINE);
@@ -188,13 +220,12 @@
         #define PLACE(x)
         #define PRINT(...)
         #define FLASH
-        #define FIRST_ARG(ARG_1, ...)
         #define ATTACH_DEBUG_STREAM(stream)
         #define DEBUG(string, ...)
         #define DEBUG_SCAN(...)
         #define DEBUG_LN(...)
         #define DEBUG_PRINT_HEADER(COLOR, HEADER)
-        #define DEBUG_PRINT_MSG(COLOR, HEADER, MSG)
+        #define DEBUG_PRINT_MSG(COLOR, HEADER, MSG, ...)
         #define DEBUG_OK(...)
         #define DEBUG_ERROR(...)
         #define DEBUG_ALERT(...)

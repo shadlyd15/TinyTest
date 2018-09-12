@@ -21,6 +21,12 @@
 	#define TEST_VERBOSE(x)		x
 #endif
 
+#if defined(ARDUINO) && defined(ARDUINO_ARCH_ESP8266)
+	#define ESP8266_ARDUINO_ONLY(x) 	x
+#else
+	#define ESP8266_ARDUINO_ONLY(x)
+#endif
+
 typedef void (*test_proto)(void);
 
 static unsigned char passed_test = 0;
@@ -47,9 +53,11 @@ static unsigned char check(int expression);
 
 
 #define RUN_TINY_TEST(test_func) 	PLACE(\
+										ESP8266_ARDUINO_ONLY(yield());\
 										TEST_VERBOSE(DEBUG_DIVIDER("*", TEST_DIVIDER_LENGTH));\
 										DEBUG_PRINT_MSG(COLOR_CYAN, RUN, #test_func "()");\
 										run_test(&test_func);\
+										ESP8266_ARDUINO_ONLY(yield());\
 									)
 
 #define TINY_TEST_REPORT() 	PLACE(\
@@ -87,7 +95,7 @@ static void run_test(test_proto test){
 		DEBUG_PRINT_MSG(COLOR_GREEN, RESULT, "Test Passed");
 		passed_test++;
 	} else{
-		DEBUG_PRINT_MSG(COLOR_RED, RESULT, "Test Failed");
+		DEBUG_PRINT_MSG(COLOR_RED, RESULT, "Test Failed" BELL);
 		failed_test++;
 	}
 	TEST_VERBOSE(DEBUG_DIVIDER("*", TEST_DIVIDER_LENGTH));
