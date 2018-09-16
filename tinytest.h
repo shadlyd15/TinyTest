@@ -1,11 +1,6 @@
 #ifndef TINY_TEST_H
 #define TINY_TEST_H
 
-
-#ifdef __cplusplus
-	extern "C" {
-#endif
-
 #define ENABLE_TEST
 // #define PRINT_MINIMAL
 #define TEST_DIVIDER_LENGTH 		(60)
@@ -81,7 +76,7 @@ static unsigned char check(int expression);
 
 #define ASSERT_TEST_RESULT(expression) 	PLACE(\
 											check(expression);\
-											TEST_VERBOSE(DEBUG_LN(#expression));\
+											DEBUG_LN(#expression);\
 											if(!last_test_status) return;\
 										)
 
@@ -104,10 +99,10 @@ static void run_test(test_proto test){
 
 static unsigned char check(int expression){
 	if(expression){
-		TEST_VERBOSE(DEBUG_PRINT_HEADER(COLOR_GREEN, OK));
+		DEBUG_PRINT_HEADER(COLOR_GREEN, OK);
 		last_test_status = 1;
 	} else{
-		TEST_VERBOSE(DEBUG_PRINT_HEADER(COLOR_RED, ERROR));
+		DEBUG_PRINT_HEADER(COLOR_RED, ERROR);
 		last_test_status = 0;
 	}
 	return last_test_status;
@@ -139,10 +134,6 @@ static uint32_t match_array(uint8_t * array_1, uint8_t * array_2, uint32_t array
 #define RUN_TEST_SUITE(tiny_test_suit)
 #define ASSERT_ARRAY(ARRAY_1, ARRAY_2, LENGTH, TYPE_SIZE)
 #define ASSERT_TEST_RESULT(expression)
-#endif
-
-#ifdef __cplusplus
-}
 #endif
 
 #endif /* TINY_TEST_H */

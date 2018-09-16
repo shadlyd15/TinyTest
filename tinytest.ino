@@ -332,12 +332,14 @@ ADD_TEST_SUITE(test_suit){
   RUN_TINY_TEST(test_47);
   RUN_TINY_TEST(test_48);
   RUN_TINY_TEST(test_49);
+  // RUN_TINY_TEST(test_300);
+  // RUN_TINY_TEST(test_301);
 }
 
 int popup(const char * input){
   if(!strncmp(input, "Y", strlen("Y"))){
     DEBUG_DIVIDER("*", TEST_DIVIDER_LENGTH);
-    DEBUG_OK("Unit Test Starting");  
+    DEBUG_OK("Unit Test %d Starting", 100);  
     RUN_TEST_SUITE(test_suit);
     TINY_TEST_REPORT();
     DEBUG_INPUT(NULL, "Press Enter To Exit", 0);
@@ -355,5 +357,5 @@ void setup(){
 }
 
 void loop(){
-
+  exit(0);
 }

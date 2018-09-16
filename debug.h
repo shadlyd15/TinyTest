@@ -1,10 +1,6 @@
 #ifndef TINY_DEBUG_H
 #define TINY_DEBUG_H
 
-#ifdef __cplusplus
-	extern "C" {
-#endif
-
 #define ENABLE_BELL
 #define ENABLE_VERBOSE
 #define SUPPORT_COLOR_TEXT
@@ -31,6 +27,7 @@
     #define PRINT_FUNC_P        printf
     #define ARDUINO_ONLY(x)
 #else
+    #include <Arduino.h>
     #include <Stream.h>
 
     #define TERMINATION         '\r'
@@ -72,13 +69,13 @@
 #if !defined(ARDUINO_ARCH_ESP8266)
     #define ARDUINO_ESP8266_PATCH(x)
 #else
-    #define ARDUINO_ESP8266_PATCH(x)     x
+    #define ARDUINO_ESP8266_PATCH(x)     (x)
 #endif
 
 #if !defined(ARDUINO_ARCH_AVR)
     #define ARDUINO_AVR_PATCH(x)
 #else
-    #define ARDUINO_AVR_PATCH(x)     x
+    #define ARDUINO_AVR_PATCH(x)     (x)
 #endif
     
 
@@ -94,62 +91,50 @@
         #if defined(ARDUINO)
             #include <stdio.h>
             #define FLASH                           PSTR
-            #define ATTACH_DEBUG_STREAM(stream) {   _debug_stream = stream;\
-                                                    ARDUINO_AVR_PATCH(fdevopen(&serial_putc, &serail_getc));  }
-            #if defined(ARDUINO_ARCH_AVR)
-                #define DEBUG_LN(...)               {   DEBUG(__VA_ARGS__);\
-                                                        PRINT(NEWLINE); }   // AVR-GCC can not de duplicate Flash String
-            #else        
-                #define DEBUG_LN(...)               {   DEBUG(__VA_ARGS__);\
-                                                        DEBUG(NEWLINE); }   // Compiler somehow optimizes PRINT(NEWLINE)
-            #endif
+            #define ATTACH_DEBUG_STREAM(stream)     {   _debug_stream = stream;\
+                                                        ARDUINO_AVR_PATCH(fdevopen(&serial_putc, &serail_getc));  }
+
             #define DEBUG(string, ...)          PRINT_FUNC_P(FLASH(string), ##__VA_ARGS__)
+            #define DEBUG_LN(...)               {   DEBUG(__VA_ARGS__);\
+                                                    ARDUINO_AVR_PATCH(PRINT(NEWLINE));\
+                                                    ARDUINO_ESP8266_PATCH(DEBUG(NEWLINE));\
+                                                }   
         #else
-            #define FLASH                       
-            #define ATTACH_DEBUG_STREAM(x)      
+            #define FLASH
+            #define ATTACH_DEBUG_STREAM(x)
             #define DEBUG(string, ...)          PRINT(string, ##__VA_ARGS__)
-            #define DEBUG_LN(...)               DEBUG(__VA_ARGS__);\
-                                                DEBUG(NEWLINE)
-        #endif /* defined(ARDUINO) && defined(ARDUINO_ARCH_AVR) */
+            #define DEBUG_LN(...)               {   DEBUG(__VA_ARGS__);\
+                                                    DEBUG(NEWLINE); }
+        #endif /* defined(ARDUINO) */
         
-        #define DEBUG_SCAN(...)             SCAN_FUNC(__VA_ARGS__)
-
-        #define DEBUG_PRINT_HEADER(COLOR, HEADER) DEBUG(COLOR " + [" #HEADER "] \t:" DEFAULT_TEXT_COLOR " ")
-
+        #define DEBUG_SCAN(...)                                 SCAN_FUNC(__VA_ARGS__)
+        #define DEBUG_PRINT_HEADER(COLOR, HEADER)               DEBUG(COLOR " + [" #HEADER "] \t:" DEFAULT_TEXT_COLOR " ")
         #define DEBUG_PRINT_MSG(COLOR, HEADER, MSG, ...)        DEBUG(COLOR " + [" #HEADER "] \t: " DEFAULT_TEXT_COLOR MSG NEWLINE, ##__VA_ARGS__)
 
-        #define DEBUG_OK(...)       PLACE(  DEBUG_PRINT_HEADER(COLOR_GREEN, OK);     \
-                                        	DEBUG_LN(__VA_ARGS__);   )
+        #define DEBUG_OK(...)       DEBUG_PRINT_MSG(COLOR_GREEN, OK, __VA_ARGS__)
+        #define DEBUG_ERROR(...)    DEBUG_PRINT_MSG(COLOR_RED, ERROR, __VA_ARGS__)
+        #define DEBUG_ALERT(...)  	DEBUG_PRINT_MSG(COLOR_CYAN, ALERT, __VA_ARGS__)
+        #define DEBUG_WARNING(...)  DEBUG_PRINT_MSG(COLOR_YELLOW, WARNING, __VA_ARGS__)
 
-        #define DEBUG_ERROR(...)    PLACE(  DEBUG_PRINT_HEADER(COLOR_RED, ERROR);     \
-                                        	DEBUG_LN(__VA_ARGS__);   )
+        #define DEBUG_INPUT(CB, MSG, LOOP)              process_input(CB, MSG, LOOP)
 
-        #define DEBUG_ALERT(...)  	PLACE(  DEBUG_PRINT_HEADER(COLOR_CYAN, ALERT);     \
-                                        	DEBUG_LN(__VA_ARGS__);   )
-
-        #define DEBUG_WARNING(...)  PLACE(  PLACE(  DEBUG_PRINT_HEADER(COLOR_YELLOW, WARNING);     \
-                                        	DEBUG_LN(__VA_ARGS__);   )
-
-        #define DEBUG_INPUT(CB, MSG, LOOP)      process_input(CB, MSG, LOOP)
-
-        #define DEBUG_ARRAY(TARGET, LENGTH, FORMAT) \
-		        PLACE(\
-		            DEBUG_PRINT_HEADER(COLOR_CYAN, ARRAY);\
-		            DEBUG(#TARGET);\
-		            DEBUG("[%d] = { ", LENGTH);\
-		            for(int i = 0; i < LENGTH; i++) {\
-						DEBUG(FORMAT, TARGET[i]); \
-						if(i < (LENGTH - 1)) \
-							DEBUG(", ");\
-					}\
-		            DEBUG(" };" NEWLINE);\
-		        )
+        #define DEBUG_ARRAY(TARGET, LENGTH, FORMAT)     PLACE(\
+                                        		            DEBUG_PRINT_HEADER(COLOR_CYAN, ARRAY);\
+                                        		            DEBUG(#TARGET);\
+                                        		            DEBUG("[%d] = { ", LENGTH);\
+                                        		            for(int i = 0; i < LENGTH; i++) {\
+                                        						DEBUG(FORMAT, TARGET[i]); \
+                                        						if(i < (LENGTH - 1)) \
+                                        							DEBUG(", ");\
+                                        					}\
+                                        		            DEBUG(" };" NEWLINE);\
+                                        		        )
 
         #define DEBUG_VALUE(TYPE, VAR)  PLACE(\
 		        							DEBUG_PRINT_HEADER(COLOR_MAGENTA, VALUE);\
                                           	DEBUG(#VAR " = ");\
                                           	DEBUG_LN(TYPE, VAR);\
-                                          )
+                                        )
 
         #define DEBUG_DIVIDER(STR, LENGTH)          print_divider(STR, LENGTH)
 
@@ -168,7 +153,10 @@
             for(int i = 0; i < length; i++){
                 PRINT(str);
             }
-            DEBUG(DEFAULT_TEXT_COLOR NEWLINE);
+            #if defined(SUPPORT_COLOR_TEXT)
+                DEBUG(DEFAULT_TEXT_COLOR);
+            #endif
+            PRINT(NEWLINE);
         }
 
         volatile static int process_input(input_callback callback, const char * message, uint8_t loop){
@@ -243,9 +231,5 @@
     #else
         #define VERBOSE(x)  {x}
     #endif /* ENABLE_VERBOSE */
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* TINY_DEBUG_H */
