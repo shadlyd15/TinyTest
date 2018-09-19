@@ -7,7 +7,7 @@ ADD_TINY_TEST(test_0){
 
 ADD_TINY_TEST(test_1){
   int i = rand()%50;
-  ASSERT_TEST_RESULT(i != 2);
+  ASSERT_TEST_RESULT(i == 2);
 }
 
 ADD_TINY_TEST(test_2){
@@ -280,11 +280,11 @@ ADD_TINY_TEST(test_49){
   ASSERT_TEST_RESULT(index != 50);
 }
 
-
 ADD_TEST_SUITE(test_suit){
   RUN_TINY_TEST(test_0);
   RUN_TINY_TEST(test_1);
   RUN_TINY_TEST(test_2);
+  /*
   RUN_TINY_TEST(test_3);
   RUN_TINY_TEST(test_4);
   RUN_TINY_TEST(test_5);
@@ -334,12 +334,13 @@ ADD_TEST_SUITE(test_suit){
   RUN_TINY_TEST(test_49);
   // RUN_TINY_TEST(test_300);
   // RUN_TINY_TEST(test_301);
+  */
 }
 
 int popup(const char * input){
   if(!strncmp(input, "Y", strlen("Y"))){
     DEBUG_DIVIDER("*", TEST_DIVIDER_LENGTH);
-    DEBUG_OK("Unit Test %d Starting", 100);  
+    DEBUG_OK("Tiny Test Starting");  
     RUN_TEST_SUITE(test_suit);
     TINY_TEST_REPORT();
     DEBUG_INPUT(NULL, "Press Enter To Exit", 0);
@@ -350,8 +351,10 @@ int popup(const char * input){
 
 void setup(){
   SET_CLOCK_SOURCE(&millis);
-  ARDUINO_ONLY(Serial.begin(19200));
+  ARDUINO_ONLY(Serial.begin(115299));
   ATTACH_DEBUG_STREAM(&Serial);
+  printf("\r\n");
+  DEBUG_DIVIDER("*", TEST_DIVIDER_LENGTH);
   DEBUG_INPUT(&popup, "Run Test? (Y/N)", 0);
   DEBUG_OK("Going To Loop");
 }

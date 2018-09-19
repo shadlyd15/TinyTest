@@ -48,6 +48,7 @@
 #endif
 
 #if !defined(SUPPORT_COLOR_TEXT)
+    #define COLOR_BLACK              
     #define COLOR_RED               
     #define COLOR_GREEN             
     #define COLOR_YELLOW            
@@ -56,13 +57,14 @@
     #define COLOR_CYAN              
     #define COLOR_WHITE             
 #else
+    #define COLOR_BLACK             "\x1B[30m"
     #define COLOR_RED               "\x1B[31m"
     #define COLOR_GREEN             "\x1B[32m"
     #define COLOR_YELLOW            "\x1B[33m"
     #define COLOR_BLUE              "\x1b[34m"
     #define COLOR_MAGENTA           "\x1b[35m"
     #define COLOR_CYAN              "\x1B[36m"
-    #define COLOR_WHITE             "\x1B[0m"
+    #define COLOR_WHITE             "\x1B[37m"
 #endif  /* SUPPORT_COLOR_TEXT  */
 
 
@@ -106,9 +108,9 @@
             #define DEBUG_LN(...)               {   DEBUG(__VA_ARGS__);\
                                                     DEBUG(NEWLINE); }
         #endif /* defined(ARDUINO) */
-        
+
         #define DEBUG_SCAN(...)                                 SCAN_FUNC(__VA_ARGS__)
-        #define DEBUG_PRINT_HEADER(COLOR, HEADER)               DEBUG(COLOR " + [" #HEADER "] \t:" DEFAULT_TEXT_COLOR " ")
+        #define DEBUG_PRINT_HEADER(COLOR, HEADER)               DEBUG(COLOR " + [" #HEADER "] \t: " DEFAULT_TEXT_COLOR)
         #define DEBUG_PRINT_MSG(COLOR, HEADER, MSG, ...)        DEBUG(COLOR " + [" #HEADER "] \t: " DEFAULT_TEXT_COLOR MSG NEWLINE, ##__VA_ARGS__)
 
         #define DEBUG_OK(...)       DEBUG_PRINT_MSG(COLOR_GREEN, OK, __VA_ARGS__)
