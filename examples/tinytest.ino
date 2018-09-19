@@ -360,5 +360,5 @@ void setup(){
 }
 
 void loop(){
-  exit(0);
+
 }
