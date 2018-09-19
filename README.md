@@ -90,4 +90,4 @@
 
 ## Sample Output
 
-![Sample Output](https://raw.githubusercontent.com/shadlyd15/tinytest/master/images/output.png)
+<div style="text-align:center"><img src ="https://raw.githubusercontent.com/shadlyd15/tinytest/master/images/output.png" alt ="Sample Output"/></div>
