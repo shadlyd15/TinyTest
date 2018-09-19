@@ -87,3 +87,7 @@
 	}
 	
  ```
+
+## Sample Output
+
+![Sample Output](https://raw.githubusercontent.com/shadlyd15/tinytest/master/images/output.png)
