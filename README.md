@@ -10,34 +10,33 @@
   
 ## How to use
 - **Add Test and Assert Result :**
-```C
+ ```C
 	ADD_TINY_TEST(test_0){
 		  int i = rand()%50;
 		  ASSERT_TEST_RESULT(i != 1);
 	}
 ```
 - **Run Test :**
-```C
+ ```C
 	RUN_TINY_TEST(test_0);
 ```
 - **Add Test Suit :**
-```C
+ ```C
 	ADD_TEST_SUITE(test_suit){
 		RUN_TINY_TEST(test_0);
 	}
 ```
 - **Run Test Suit :**
  ```C
-     RUN_TEST_SUITE(test_suit);
+	RUN_TEST_SUITE(test_suit);
 ```
 - **Generate Test Report :**
-```C
+ ```C
 	TINY_TEST_REPORT();
 ```
-
 ## Arduino Example 
 
-```C
+ ``` C
 
 	#include "tinytest.h"
 
@@ -87,4 +86,4 @@
 
 	}
 	
-```
+ ```
