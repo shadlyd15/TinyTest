@@ -1,12 +1,12 @@
 
 # Tiny Test
 
-**Tiny Test** is a minimal unit test framework for C/C++. It is designed especially for embedded systems keeping in mind the limitation and capabilities of the platform.
-  - Low memory usage
-  - Supports a wide range of compilers and processor architectures
-  - Arduino compatible
-  - Color debug output
-  - Very easy to use
+**Tiny Test** is a minimal unit test framework for **C/C++**. It is designed especially for embedded systems keeping in mind the limitation and capabilities of the platform.
+  - **Low memory usage**
+  - **Supports a wide range of compilers and processor architectures**
+  - **Arduino compatible**
+  - **Color debug output**
+  - **Very easy to use**
   
 ## How to use
 - **Add Test and Assert Result :**
