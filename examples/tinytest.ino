@@ -351,7 +351,7 @@ int popup(const char * input){
 
 void setup(){
   SET_CLOCK_SOURCE(&millis);
-  ARDUINO_ONLY(Serial.begin(115299));
+  ARDUINO_ONLY(Serial.begin(115200));
   ATTACH_DEBUG_STREAM(&Serial);
   printf("\r\n");
   DEBUG_DIVIDER("*", TEST_DIVIDER_LENGTH);
