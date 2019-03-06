@@ -51,6 +51,7 @@ static unsigned char check(int expression);
 										ESP8266_ARDUINO_ONLY(yield());\
 										TEST_VERBOSE(DEBUG_DIVIDER("*", TEST_DIVIDER_LENGTH));\
 										DEBUG_PRINT_MSG(COLOR_CYAN, RUN, #test_func "()");\
+										last_test_status = 0;\
 										run_test(&test_func);\
 										ESP8266_ARDUINO_ONLY(yield());\
 									)
